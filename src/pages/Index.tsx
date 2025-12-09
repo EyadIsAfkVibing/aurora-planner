@@ -25,6 +25,7 @@ const Index = () => {
 
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [viewState, setViewState] = useState<'auth' | 'transitioning' | 'dashboard'>('auth');
 
   // Handle auth state changes with transition
   useEffect(() => {
@@ -35,32 +36,36 @@ const Index = () => {
       }
       // Show dashboard after data loads
       setShowDashboard(true);
+      setViewState('dashboard');
     } else if (!user) {
       setShowDashboard(false);
+      setViewState('auth');
     }
   }, [user, isLoaded, schedule.length, initializeSchedule]);
 
   const handleSignIn = (username: string, password: string) => {
-    setIsTransitioning(true);
     const result = signIn(username, password);
     
     if (result.success) {
-      setTimeout(() => setIsTransitioning(false), 1200);
-    } else {
-      setIsTransitioning(false);
+      setIsTransitioning(true);
+      setViewState('transitioning');
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 1400);
     }
     
     return result;
   };
 
   const handleSignUp = (username: string, password: string) => {
-    setIsTransitioning(true);
     const result = signUp(username, password);
     
     if (result.success) {
-      setTimeout(() => setIsTransitioning(false), 1200);
-    } else {
-      setIsTransitioning(false);
+      setIsTransitioning(true);
+      setViewState('transitioning');
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 1400);
     }
     
     return result;
@@ -68,10 +73,11 @@ const Index = () => {
 
   const handleLogout = () => {
     setIsTransitioning(true);
+    setViewState('transitioning');
     setTimeout(() => {
       signOut();
       setIsTransitioning(false);
-    }, 400);
+    }, 800);
   };
 
   if (authLoading) {
@@ -91,23 +97,23 @@ const Index = () => {
       {/* Cinematic Loading Overlay */}
       <LoadingOverlay isLoading={isTransitioning} />
 
-      {/* Auth View */}
+      {/* Auth View with exit animation */}
       <div
-        className={`absolute inset-0 z-10 transition-all duration-300 ${
+        className={`absolute inset-0 z-10 transition-all duration-500 ease-out ${
           showDashboard && !isTransitioning
-            ? 'opacity-0 -translate-y-20 blur-lg pointer-events-none'
-            : 'opacity-100 translate-y-0 blur-0'
+            ? 'opacity-0 scale-110 blur-xl pointer-events-none'
+            : 'opacity-100 scale-100 blur-0'
         }`}
       >
         <AuthPage onSignIn={handleSignIn} onSignUp={handleSignUp} />
       </div>
 
-      {/* Dashboard View */}
+      {/* Dashboard View with entrance animation */}
       <div
-        className={`absolute inset-0 z-20 transition-all duration-300 ${
+        className={`absolute inset-0 z-20 transition-all duration-500 ease-out ${
           showDashboard && !isTransitioning
-            ? 'opacity-100 translate-y-0'
-            : 'opacity-0 translate-y-20 pointer-events-none'
+            ? 'opacity-100 scale-100 blur-0'
+            : 'opacity-0 scale-95 blur-xl pointer-events-none'
         }`}
       >
         {user && (
