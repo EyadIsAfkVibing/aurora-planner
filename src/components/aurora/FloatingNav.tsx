@@ -1,28 +1,40 @@
 import { useState } from 'react';
-import { Activity, LayoutDashboard, Zap, PieChart, Power, Settings } from 'lucide-react';
+import { Activity, LayoutDashboard, Zap, PieChart, Power, Settings, Star } from 'lucide-react';
 import { MagneticButton } from './MagneticButton';
 
 interface FloatingNavProps {
   username: string;
   percent: number;
+  level: number;
+  xp: number;
+  activeTab: 'overview' | 'focus' | 'analytics';
+  onTabChange: (tab: 'overview' | 'focus' | 'analytics') => void;
   onLogout: () => void;
   onOpenSettings: () => void;
 }
 
-export const FloatingNav = ({ username, percent, onLogout, onOpenSettings }: FloatingNavProps) => {
-  const [activeTab, setActiveTab] = useState('Overview');
+export const FloatingNav = ({
+  username,
+  percent,
+  level,
+  xp,
+  activeTab,
+  onTabChange,
+  onLogout,
+  onOpenSettings,
+}: FloatingNavProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  
+
   const tabs = [
-    { id: 'Overview', icon: LayoutDashboard },
-    { id: 'Focus', icon: Zap },
-    { id: 'Analytics', icon: PieChart },
+    { id: 'overview' as const, icon: LayoutDashboard, label: 'Overview' },
+    { id: 'focus' as const, icon: Zap, label: 'Focus' },
+    { id: 'analytics' as const, icon: PieChart, label: 'Analytics' },
   ];
 
   return (
     <div className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
-      <div 
-        className="relative w-full max-w-3xl nav-capsule p-2 flex items-center justify-between overflow-hidden group animate-slide-up"
+      <div
+        className="relative w-full max-w-4xl nav-capsule p-2 flex items-center justify-between overflow-hidden group animate-slide-up"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         style={{ animationDelay: '0.2s' }}
@@ -31,51 +43,62 @@ export const FloatingNav = ({ username, percent, onLogout, onOpenSettings }: Flo
         <div className="absolute top-0 bottom-0 w-[50px] bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 animate-scan pointer-events-none" />
 
         {/* Edge glow on hover */}
-        <div 
+        <div
           className={`absolute inset-0 rounded-full transition-all duration-500 pointer-events-none ${
             isHovered ? 'shadow-[inset_0_0_30px_hsl(var(--primary)/0.2)]' : ''
           }`}
         />
 
-        {/* Left: User Identity */}
+        {/* Left: User Identity with Level */}
         <div className="flex items-center gap-3 pl-2">
-          <div className="relative w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-accent p-[1px] animate-spin-slow-reverse group-hover:animate-none group-hover:scale-110 transition-transform duration-300">
-            <div className="w-full h-full rounded-full bg-background/80 flex items-center justify-center backdrop-blur-sm relative overflow-hidden">
-              <span className="font-bold text-sm text-foreground relative z-10">
-                {username.charAt(0).toUpperCase()}
-              </span>
-              {/* Inner glow */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative">
+            {/* Avatar with rotating ring */}
+            <div className="relative w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-accent p-[1px] animate-spin-slow-reverse group-hover:animate-none group-hover:scale-110 transition-transform duration-300">
+              <div className="w-full h-full rounded-full bg-background/80 flex items-center justify-center backdrop-blur-sm relative overflow-hidden">
+                <span className="font-bold text-sm text-foreground relative z-10">
+                  {username.charAt(0).toUpperCase()}
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+            
+            {/* Level badge */}
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[10px] font-bold text-white shadow-[0_0_10px_rgba(251,191,36,0.5)]">
+              {level}
             </div>
           </div>
+
           <div className="hidden sm:flex flex-col">
             <span className="text-xs font-bold text-foreground tracking-wider group-hover:animate-text-glow">
-              CMD // {username.toUpperCase()}
+              {username.toUpperCase()}
             </span>
-            <span className="text-[10px] text-aurora-emerald font-mono flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-aurora-emerald animate-pulse shadow-[0_0_8px_hsl(var(--aurora-emerald))]" />
-              ONLINE
+            <span className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
+              <Star className="w-3 h-3 text-amber-400" />
+              {xp.toLocaleString()} XP
             </span>
           </div>
         </div>
 
-        {/* Center: Sliding Tabs */}
+        {/* Center: Animated Tabs */}
         <div className="hidden md:flex relative bg-white/5 rounded-full p-1 border border-white/5">
-          {tabs.map((tab, index) => (
+          {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => onTabChange(tab.id)}
               className={`relative z-10 px-4 py-2 text-xs font-medium transition-all duration-300 flex items-center gap-2 rounded-full ${
-                activeTab === tab.id ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'
+                activeTab === tab.id
+                  ? 'text-foreground'
+                  : 'text-muted-foreground hover:text-foreground/80'
               }`}
             >
-              <tab.icon className={`w-3.5 h-3.5 transition-all duration-300 ${
-                activeTab === tab.id ? 'scale-110' : ''
-              }`} />
+              <tab.icon
+                className={`w-3.5 h-3.5 transition-all duration-300 ${
+                  activeTab === tab.id ? 'scale-110' : ''
+                }`}
+              />
               <span className="relative">
-                {tab.id}
-                {/* Underline animation */}
-                <span 
+                {tab.label}
+                <span
                   className={`absolute -bottom-0.5 left-0 h-[2px] bg-primary transition-all duration-300 ${
                     activeTab === tab.id ? 'w-full' : 'w-0'
                   }`}
@@ -89,7 +112,7 @@ export const FloatingNav = ({ username, percent, onLogout, onOpenSettings }: Flo
         </div>
 
         {/* Right: Sync Rate & Actions */}
-        <div className="flex items-center gap-4 pr-2">
+        <div className="flex items-center gap-3 pr-2">
           {/* Sync Rate Gauge */}
           <div className="flex items-center gap-2 px-3 py-1.5 bg-background/40 rounded-full border border-white/10 group-hover:border-aurora-emerald/30 transition-colors">
             <Activity className="w-3.5 h-3.5 text-aurora-emerald" />
