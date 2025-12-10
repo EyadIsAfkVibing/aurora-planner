@@ -556,4 +556,22 @@
   .preserve-3d {
     transform-style: preserve-3d;
   }
+
+  /* Aurora colors as text */
+  .text-aurora-emerald {
+    color: hsl(var(--aurora-emerald));
+  }
+  .text-aurora-fuchsia {
+    color: hsl(var(--aurora-fuchsia));
+  }
+  .text-aurora-cyan {
+    color: hsl(var(--aurora-cyan));
+  }
+  
+  .bg-aurora-emerald {
+    background-color: hsl(var(--aurora-emerald));
+  }
+  .border-aurora-emerald\/30 {
+    border-color: hsl(var(--aurora-emerald) / 0.3);
+  }
 }
