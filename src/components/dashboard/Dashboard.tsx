@@ -1,16 +1,19 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus, Sparkles } from 'lucide-react';
+import { Plus, Sparkles, Wand2 } from 'lucide-react';
 import { FloatingNav } from '../aurora/FloatingNav';
 import { DayCard } from '../schedule/DayCard';
 import { SettingsModal } from '../schedule/SettingsModal';
 import { AchievementPopup } from '../analytics/AchievementPopup';
 import { HolographicLayer } from '../aurora/HolographicLayer';
-import { StudyAdvisor } from '../smart/StudyAdvisor';
+import { ParallaxLayer } from '../aurora/ParallaxLayer';
+import { SmartDailyAdvisor } from '../smart/SmartDailyAdvisor';
+import { CognitiveLoadMeter } from '../smart/CognitiveLoadMeter';
 import { ExamCountdown } from '../smart/ExamCountdown';
-import { SubjectMastery } from '../smart/SubjectMastery';
 import { QuickActionsBar } from '../smart/QuickActionsBar';
 import { useStudyStats } from '@/hooks/useStudyStats';
+import { useIntelligentSchedule } from '@/hooks/useIntelligentSchedule';
 import type { Day, SubjectConfig } from '@/hooks/useSchedule';
+
 interface DashboardProps {
   username: string;
   schedule: Day[];
@@ -56,6 +59,13 @@ export const Dashboard = ({
     xpToNextLevel,
   } = useStudyStats(username);
 
+  const {
+    subjectProfiles,
+    recommendations,
+    todayLoad,
+    estimatedCompletion,
+  } = useIntelligentSchedule(schedule, subjects);
+
   // Track lesson completions
   useEffect(() => {
     if (stats.completed > prevLessonCount.current) {
@@ -79,8 +89,9 @@ export const Dashboard = ({
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Holographic Layer */}
+      {/* Visual Layers */}
       <HolographicLayer />
+      <ParallaxLayer />
 
       {/* Achievement Popup */}
       <AchievementPopup achievement={newAchievement} onDismiss={dismissAchievement} />
@@ -129,14 +140,18 @@ export const Dashboard = ({
 
           {/* Smart Features Row */}
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
-            <StudyAdvisor
-              schedule={schedule}
-              subjects={subjects}
-              streak={studyStats.currentStreak}
-              completedToday={stats.completed}
+            <SmartDailyAdvisor
+              subjectProfiles={subjectProfiles}
+              recommendations={recommendations}
+              todayLoad={todayLoad}
+              estimatedCompletion={estimatedCompletion}
+            />
+            <CognitiveLoadMeter
+              load={todayLoad.load}
+              level={todayLoad.level as any}
+              lessonsRemaining={todayLoad.lessonsRemaining}
             />
             <ExamCountdown username={username} />
-            <SubjectMastery schedule={schedule} />
           </div>
 
           {/* Schedule Grid */}
