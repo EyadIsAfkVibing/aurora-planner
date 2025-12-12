@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Activity, LayoutDashboard, Zap, PieChart, Power, Settings, Star } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { MagneticButton } from './MagneticButton';
 
 interface FloatingNavProps {
@@ -7,8 +8,6 @@ interface FloatingNavProps {
   percent: number;
   level: number;
   xp: number;
-  activeTab: 'overview' | 'focus' | 'analytics';
-  onTabChange: (tab: 'overview' | 'focus' | 'analytics') => void;
   onLogout: () => void;
   onOpenSettings: () => void;
 }
@@ -18,18 +17,24 @@ export const FloatingNav = ({
   percent,
   level,
   xp,
-  activeTab,
-  onTabChange,
   onLogout,
   onOpenSettings,
 }: FloatingNavProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const tabs = [
-    { id: 'overview' as const, icon: LayoutDashboard, label: 'Overview' },
-    { id: 'focus' as const, icon: Zap, label: 'Focus' },
-    { id: 'analytics' as const, icon: PieChart, label: 'Analytics' },
+    { id: 'overview', path: '/', icon: LayoutDashboard, label: 'Overview' },
+    { id: 'focus', path: '/focus', icon: Zap, label: 'Focus' },
+    { id: 'analytics', path: '/analytics', icon: PieChart, label: 'Analytics' },
   ];
+
+  const activeTab = tabs.find(tab => tab.path === location.pathname)?.id || 'overview';
+
+  const handleTabClick = (path: string) => {
+    navigate(path);
+  };
 
   return (
     <div className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
@@ -79,12 +84,12 @@ export const FloatingNav = ({
           </div>
         </div>
 
-        {/* Center: Animated Tabs */}
+        {/* Center: Navigation Tabs */}
         <div className="hidden md:flex relative bg-white/5 rounded-full p-1 border border-white/5">
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => onTabChange(tab.id)}
+              onClick={() => handleTabClick(tab.path)}
               className={`relative z-10 px-4 py-2 text-xs font-medium transition-all duration-300 flex items-center gap-2 rounded-full ${
                 activeTab === tab.id
                   ? 'text-foreground'

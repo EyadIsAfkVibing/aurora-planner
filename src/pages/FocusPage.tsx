@@ -6,8 +6,6 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AuroraBackground } from '@/components/aurora/AuroraBackground';
-import { HolographicLayer } from '@/components/aurora/HolographicLayer';
-import { ParallaxLayer } from '@/components/aurora/ParallaxLayer';
 import { FocusTimer } from '@/components/focus/FocusTimer';
 import { CognitiveLoadMeter } from '@/components/smart/CognitiveLoadMeter';
 import { useLocalAuth } from '@/hooks/useLocalAuth';
@@ -91,13 +89,27 @@ export const FocusPage = () => {
     { icon: Target, label: 'Sessions', value: sessionStats.sessions.toString(), color: 'text-aurora-cyan' },
   ];
 
-  if (!isLoaded || !user) return null;
+  // Loading state
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+        <AuroraBackground variant="dashboard" />
+        <div className="relative z-10 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
+            <Timer className="w-8 h-8 text-primary" />
+          </div>
+          <p className="text-muted-foreground">Loading Focus Mode...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!user) return null;
 
   return (
     <div className="min-h-screen relative overflow-hidden">
       <AuroraBackground variant="dashboard" />
-      <HolographicLayer />
-      <ParallaxLayer />
 
       <div className="relative z-10 min-h-screen">
         {/* Header */}
