@@ -1,11 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus, Sparkles, Wand2 } from 'lucide-react';
+import { Plus, Sparkles } from 'lucide-react';
 import { FloatingNav } from '../aurora/FloatingNav';
 import { DayCard } from '../schedule/DayCard';
 import { SettingsModal } from '../schedule/SettingsModal';
 import { AchievementPopup } from '../analytics/AchievementPopup';
-import { HolographicLayer } from '../aurora/HolographicLayer';
-import { ParallaxLayer } from '../aurora/ParallaxLayer';
 import { SmartDailyAdvisor } from '../smart/SmartDailyAdvisor';
 import { CognitiveLoadMeter } from '../smart/CognitiveLoadMeter';
 import { ExamCountdown } from '../smart/ExamCountdown';
@@ -29,8 +27,6 @@ interface DashboardProps {
   onResetSchedule: () => void;
 }
 
-type TabType = 'overview';
-
 export const Dashboard = ({
   username,
   schedule,
@@ -46,8 +42,6 @@ export const Dashboard = ({
   onResetSchedule,
 }: DashboardProps) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
-  const [isTabTransitioning, setIsTabTransitioning] = useState(false);
   const prevLessonCount = useRef(stats.completed);
 
   const {
@@ -55,8 +49,6 @@ export const Dashboard = ({
     recordLessonCompletion,
     newAchievement,
     dismissAchievement,
-    xpProgress,
-    xpToNextLevel,
   } = useStudyStats(username);
 
   const {
@@ -74,25 +66,12 @@ export const Dashboard = ({
     prevLessonCount.current = stats.completed;
   }, [stats.completed, recordLessonCompletion]);
 
-  const handleTabChange = useCallback((tab: TabType) => {
-    if (tab === activeTab) return;
-    setIsTabTransitioning(true);
-    setTimeout(() => {
-      setActiveTab(tab);
-      setIsTabTransitioning(false);
-    }, 200);
-  }, [activeTab]);
-
   const handleToggleLesson = useCallback((dayId: string, lessonId: string) => {
     onToggleLesson(dayId, lessonId);
   }, [onToggleLesson]);
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Visual Layers */}
-      <HolographicLayer />
-      <ParallaxLayer />
-
       {/* Achievement Popup */}
       <AchievementPopup achievement={newAchievement} onDismiss={dismissAchievement} />
 
@@ -102,44 +81,35 @@ export const Dashboard = ({
         percent={stats.percent}
         level={studyStats.level}
         xp={studyStats.totalXP}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
         onLogout={onLogout}
         onOpenSettings={() => setSettingsOpen(true)}
       />
 
       {/* Content */}
-      <main className="flex-1 overflow-y-auto pt-32 px-4 sm:px-8 pb-32 custom-scrollbar relative z-10">
-        <div
-          className={`transition-all duration-300 ${
-            isTabTransitioning ? 'opacity-0 scale-95 blur-sm' : 'opacity-100 scale-100 blur-0'
-          }`}
-        >
-          {/* Hero Text */}
-          <div className="max-w-7xl mx-auto mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <main className="flex-1 overflow-y-auto pt-28 px-4 sm:px-8 pb-32 custom-scrollbar relative z-10">
+        {/* Hero Section - Clean & Minimal */}
+        <div className="max-w-6xl mx-auto mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
-              <h1
-                className="text-4xl sm:text-5xl font-light text-foreground tracking-tight animate-slide-up"
-                style={{ animationDelay: '0.3s' }}
-              >
-                Your <span className="font-serif italic text-primary/80">Curriculum</span> Protocol
+              <h1 className="text-4xl sm:text-5xl font-light text-foreground tracking-tight animate-slide-up">
+                Your <span className="font-serif italic text-primary/80">Schedule</span>
               </h1>
-              <p className="text-muted-foreground mt-2 animate-slide-up" style={{ animationDelay: '0.4s' }}>
+              <p className="text-muted-foreground mt-2 animate-slide-up" style={{ animationDelay: '0.1s' }}>
                 {stats.completed} of {stats.total} lessons completed • {stats.percent}% synced
               </p>
             </div>
             <button
               onClick={onAddDay}
               className="btn-aurora flex items-center gap-2 animate-slide-up group"
-              style={{ animationDelay: '0.5s' }}
+              style={{ animationDelay: '0.2s' }}
             >
               <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
               <span className="text-sm font-medium">Add Day</span>
             </button>
           </div>
 
-          {/* Smart Features Row */}
-          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+          {/* Smart Widgets Row - 3 Essential Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
             <SmartDailyAdvisor
               subjectProfiles={subjectProfiles}
               recommendations={recommendations}
@@ -148,14 +118,16 @@ export const Dashboard = ({
             />
             <CognitiveLoadMeter
               load={todayLoad.load}
-              level={todayLoad.level as any}
+              level={todayLoad.level as 'light' | 'moderate' | 'heavy' | 'overloaded'}
               lessonsRemaining={todayLoad.lessonsRemaining}
             />
             <ExamCountdown username={username} />
           </div>
+        </div>
 
-          {/* Schedule Grid */}
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Schedule Grid - Clean Layout */}
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {schedule.map((day, idx) => (
               <DayCard
                 key={day.id}
@@ -171,7 +143,7 @@ export const Dashboard = ({
 
           {/* Empty State */}
           {schedule.length === 0 && (
-            <div className="max-w-7xl mx-auto text-center py-20 animate-slide-up">
+            <div className="text-center py-20 animate-slide-up">
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
                 <Sparkles className="w-10 h-10 text-primary" />
               </div>

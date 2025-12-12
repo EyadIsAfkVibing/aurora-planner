@@ -1,14 +1,11 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  ArrowLeft, BarChart3, TrendingUp, Calendar, Award, 
+  ArrowLeft, BarChart3, TrendingUp, Calendar, 
   Flame, BookOpen, Target, Activity, Zap, Clock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AuroraBackground } from '@/components/aurora/AuroraBackground';
-import { HolographicLayer } from '@/components/aurora/HolographicLayer';
-import { ParallaxLayer } from '@/components/aurora/ParallaxLayer';
-import { AnalyticsPanel } from '@/components/analytics/AnalyticsPanel';
 import { ProgressRing } from '@/components/analytics/ProgressRing';
 import { WeeklyChart } from '@/components/analytics/WeeklyChart';
 import { SubjectProfiles } from '@/components/smart/SubjectProfiles';
@@ -30,7 +27,23 @@ export const AnalyticsPage = () => {
     }
   }, [user, navigate]);
 
-  if (!isLoaded || !user) return null;
+  // Loading state
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+        <AuroraBackground variant="dashboard" />
+        <div className="relative z-10 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
+            <BarChart3 className="w-8 h-8 text-primary" />
+          </div>
+          <p className="text-muted-foreground">Loading Analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!user) return null;
 
   // Calculate velocity (lessons per active day)
   const velocity = studyStats.totalStudyDays > 0 
@@ -51,8 +64,6 @@ export const AnalyticsPage = () => {
   return (
     <div className="min-h-screen relative overflow-hidden">
       <AuroraBackground variant="dashboard" />
-      <HolographicLayer />
-      <ParallaxLayer />
 
       <div className="relative z-10 min-h-screen">
         {/* Header */}
