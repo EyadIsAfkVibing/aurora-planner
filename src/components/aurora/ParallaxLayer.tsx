@@ -1,16 +1,119 @@
 import { useEffect, useState, useRef } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform, MotionValue } from 'framer-motion';
 
 interface ParallaxElement {
   id: number;
   x: number;
   y: number;
   size: number;
-  depth: number; // 0-1, affects parallax intensity
+  depth: number;
   type: 'orb' | 'ring' | 'line' | 'dot';
   color: string;
   rotation: number;
 }
+
+interface ParallaxItemProps {
+  element: ParallaxElement;
+  smoothX: MotionValue<number>;
+  smoothY: MotionValue<number>;
+}
+
+const ParallaxItem = ({ element, smoothX, smoothY }: ParallaxItemProps) => {
+  const offsetX = useTransform(smoothX, [0, 1], [-50 * element.depth, 50 * element.depth]);
+  const offsetY = useTransform(smoothY, [0, 1], [-50 * element.depth, 50 * element.depth]);
+
+  return (
+    <motion.div
+      className="absolute"
+      style={{
+        left: `${element.x}%`,
+        top: `${element.y}%`,
+        x: offsetX,
+        y: offsetY,
+      }}
+    >
+      {element.type === 'orb' && (
+        <motion.div
+          className="rounded-full blur-xl"
+          style={{
+            width: element.size,
+            height: element.size,
+            background: `radial-gradient(circle, ${element.color}40 0%, transparent 70%)`,
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 4 + element.depth * 3,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      )}
+      
+      {element.type === 'ring' && (
+        <motion.div
+          className="border rounded-full"
+          style={{
+            width: element.size,
+            height: element.size,
+            borderColor: `${element.color}30`,
+          }}
+          animate={{
+            rotate: [0, 360],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            rotate: { duration: 20 / element.depth, repeat: Infinity, ease: 'linear' },
+            scale: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
+          }}
+        />
+      )}
+      
+      {element.type === 'line' && (
+        <motion.div
+          className="h-px"
+          style={{
+            width: element.size * 2,
+            background: `linear-gradient(90deg, transparent, ${element.color}40, transparent)`,
+            transform: `rotate(${element.rotation}deg)`,
+          }}
+          animate={{
+            opacity: [0.2, 0.5, 0.2],
+            scaleX: [0.8, 1.2, 0.8],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      )}
+      
+      {element.type === 'dot' && (
+        <motion.div
+          className="rounded-full"
+          style={{
+            width: element.size / 4,
+            height: element.size / 4,
+            background: element.color,
+            boxShadow: `0 0 ${element.size / 2}px ${element.color}`,
+          }}
+          animate={{
+            opacity: [0.3, 0.8, 0.3],
+            scale: [1, 1.5, 1],
+          }}
+          transition={{
+            duration: 2 + Math.random() * 2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      )}
+    </motion.div>
+  );
+};
 
 export const ParallaxLayer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -57,103 +160,14 @@ export const ParallaxLayer = () => {
 
   return (
     <div ref={containerRef} className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      {elements.map((element) => {
-        const offsetX = useTransform(smoothX, [0, 1], [-50 * element.depth, 50 * element.depth]);
-        const offsetY = useTransform(smoothY, [0, 1], [-50 * element.depth, 50 * element.depth]);
-        
-        return (
-          <motion.div
-            key={element.id}
-            className="absolute"
-            style={{
-              left: `${element.x}%`,
-              top: `${element.y}%`,
-              x: offsetX,
-              y: offsetY,
-            }}
-          >
-            {element.type === 'orb' && (
-              <motion.div
-                className="rounded-full blur-xl"
-                style={{
-                  width: element.size,
-                  height: element.size,
-                  background: `radial-gradient(circle, ${element.color}40 0%, transparent 70%)`,
-                }}
-                animate={{
-                  scale: [1, 1.2, 1],
-                  opacity: [0.3, 0.5, 0.3],
-                }}
-                transition={{
-                  duration: 4 + element.depth * 3,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
-            )}
-            
-            {element.type === 'ring' && (
-              <motion.div
-                className="border rounded-full"
-                style={{
-                  width: element.size,
-                  height: element.size,
-                  borderColor: `${element.color}30`,
-                }}
-                animate={{
-                  rotate: [0, 360],
-                  scale: [1, 1.1, 1],
-                }}
-                transition={{
-                  rotate: { duration: 20 / element.depth, repeat: Infinity, ease: 'linear' },
-                  scale: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
-                }}
-              />
-            )}
-            
-            {element.type === 'line' && (
-              <motion.div
-                className="h-px"
-                style={{
-                  width: element.size * 2,
-                  background: `linear-gradient(90deg, transparent, ${element.color}40, transparent)`,
-                  transform: `rotate(${element.rotation}deg)`,
-                }}
-                animate={{
-                  opacity: [0.2, 0.5, 0.2],
-                  scaleX: [0.8, 1.2, 0.8],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
-            )}
-            
-            {element.type === 'dot' && (
-              <motion.div
-                className="rounded-full"
-                style={{
-                  width: element.size / 4,
-                  height: element.size / 4,
-                  background: element.color,
-                  boxShadow: `0 0 ${element.size / 2}px ${element.color}`,
-                }}
-                animate={{
-                  opacity: [0.3, 0.8, 0.3],
-                  scale: [1, 1.5, 1],
-                }}
-                transition={{
-                  duration: 2 + Math.random() * 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
-            )}
-          </motion.div>
-        );
-      })}
+      {elements.map((element) => (
+        <ParallaxItem
+          key={element.id}
+          element={element}
+          smoothX={smoothX}
+          smoothY={smoothY}
+        />
+      ))}
 
       {/* Animated gradient waves */}
       <motion.div
